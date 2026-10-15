@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Absensi</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  /* ========== LOGIN ========== */
+  .login-box {
+    background: #fff;
+    padding: 40px 35px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    animation: fadeIn 0.4s ease;
+  }
+  .login-box h1 { text-align: center; color: #333; margin-bottom: 6px; font-size: 24px; }
+  .login-box p { text-align: center; color: #999; font-size: 13px; margin-bottom: 25px; }
+  .lock-icon { text-align: center; font-size: 48px; margin-bottom: 10px; }
+  .input-group { margin-bottom: 15px; }
+  .input-group label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 600; }
+  .input-group input {
+    width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s;
+  }
+  .input-group input:focus { border-color: #667eea; }
+  .btn-login {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff; border: none; border-radius: 8px; font-size: 15px;
+    font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
+  .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .error { color: #ef4444; font-size: 13px; text-align: center; margin-top: 12px; min-height: 18px; font-weight: 500; }
+  .loading { color: #667eea; font-size: 13px; text-align: center; margin-top: 8px; min-height: 18px; }
+
+  /* ========== DASHBOARD ========== */
+  .dashboard {
+    display: none; width: 100%; max-width: 1000px;
+    background: #fff; border-radius: 16px; padding: 30px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    animation: fadeIn 0.4s ease;
+  }
+  .dashboard.active { display: block; }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 25px; padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0; flex-wrap: wrap; gap: 10px;
+  }
+  .header h1 { color: #333; font-size: 22px; }
+  .header .user-info { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #666; }
+  .avatar {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700;
+  }
+  .btn-logout {
+    background: #ef4444; color: #fff; border: none;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; font-weight: 600;
+  }
+  .btn-logout:hover { background: #dc2626; }
+  .form-grid {
+    display: grid; grid-template-columns: 2fr 1.5fr 1fr auto;
+    gap: 10px; margin-bottom: 20px;
+  }
+  input, select, button {
+    padding: 12px; border-radius: 8px; border: 2px solid #e0e0e0;
+    font-size: 14px; outline: none; transition: 0.2s;
+  }
+  input:focus, select:focus { border-color: #667eea; }
+  .btn-add { background: #667eea; color: #fff; border: none; cursor: pointer; font-weight: 600; padding: 12px 20px; }
+  .btn-add:hover { background: #5568d3; }
+  .stats { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-box { flex: 1; min-width: 100px; padding: 12px; border-radius: 8px; text-align: center; color: #fff; }
+  .stat-box b { display: block; font-size: 22px; }
+  .stat-box span { font-size: 12px; opacity: 0.9; }
+  .hadir { background: #22c55e; }
+  .izin  { background: #f59e0b; }
+  .sakit { background: #3b82f6; }
+  .alpha { background: #ef4444; }
+  .total { background: #667eea; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+  th { background: #f8f9fc; color: #555; font-weight: 600; }
+  tr:hover { background: #fafbff; }
+  .badge { padding: 4px 10px; border-radius: 20px; color: #fff; font-size: 12px; font-weight: 600; }
+  .btn-hapus { background: #ef4444; color: #fff; border: none; padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; }
+  .btn-hapus:hover { background: #dc2626; }
+  .btn-edit { background: #f59e0b; color: #fff; border: none; padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; margin-right: 4px; }
+  .btn-edit:hover { background: #d97706; }
+  .btn-export { background: #10b981; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  .btn-export:hover { background: #059669; }
+  .btn-hapus-semua { background: #ef4444; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; flex-wrap: wrap; gap: 10px; }
+  .empty { text-align: center; color: #aaa; padding: 30px; }
+  .search-box { margin-bottom: 15px; }
+  .search-box input { width: 100%; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    table { font-size: 12px; }
+    th, td { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== HALAMAN LOGIN ========== -->
+<div class="login-box" id="loginPage">
+  <div class="lock-icon">🔐</div>
+  <h1>Admin Panel</h1>
+  <p>Masuk untuk mengelola data absensi</p>
+
+  <div class="input-group">
+    <label>Email</label>
+    <input type="email" id="email" placeholder="admin@email.com">
+  </div>
+
+  <div class="input-group">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Masukkan password">
+  </div>
+
+  <button class="btn-login" id="btnLogin" onclick="login()">Masuk</button>
+  <div class="error" id="errorMsg"></div>
+  <div class="loading" id="loadingMsg"></div>
+</div>
+
+<!-- ========== DASHBOARD ADMIN ========== -->
+<div class="dashboard" id="dashboard">
+  <div class="header">
+    <h1>📋 Dashboard Absensi</h1>
+    <div class="user-info">
+      <div class="avatar" id="avatarAdmin">A</div>
+      <span>Halo, <b id="emailAdmin">Admin</b></span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="form-grid">
+    <input type="text" id="nama" placeholder="Nama lengkap">
+    <input type="text" id="kelas" placeholder="Kelas / Jabatan">
+    <select id="status">
+      <option value="Hadir">✅ Hadir</option>
+      <option value="Izin">📝 Izin</option>
+      <option value="Sakit">🤒 Sakit</option>
+      <option value="Alpha">❌ Alpha</option>
+    </select>
+    <button class="btn-add" id="btnSubmit" onclick="tambahAbsen()">+ Tambah</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="search-box">
+    <input type="text" id="search" placeholder="🔍 Cari nama atau kelas..." oninput="render()">
+  </div>
+
+  <div class="actions">
+    <button class="btn-export" onclick="exportCSV()">⬇️ Export CSV</button>
+    <button class="btn-hapus-semua" onclick="hapusSemua()">🗑️ Hapus Semua</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>No</th><th>Nama</th><th>Kelas/Jabatan</th>
+        <th>Status</th><th>Waktu</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="tabelAbsen"></tbody>
+  </table>
+</div>
+
+<!-- ========== FIREBASE SDK ========== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+  // ============================================
+  // ⚠️ GANTI BAGIAN INI DENGAN firebaseConfig MILIKMU
+  // ============================================
+  const firebaseConfig = {
+    apiKey: "AIzaSy...",
+    authDomain: "web-absensi.firebaseapp.com",
+    projectId: "web-absensi",
+    storageBucket: "web-absensi.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abc123"
+  };
+  // ============================================
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  let dataAbsen = JSON.parse(localStorage.getItem('dataAbsen')) || [];
+  let editIndex = -1;
+
+  // ========== LOGIN ==========
+  window.login = async function() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const err = document.getElementById('errorMsg');
+    const btn = document.getElementById('btnLogin');
+    const loading = document.getElementById('loadingMsg');
+
+    err.textContent = '';
+    loading.textContent = '⏳ Memproses...';
+    btn.disabled = true;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      loading.textContent = '✅ Login berhasil!';
+    } catch (error) {
+      let pesan = '❌ Terjadi kesalahan.';
+      if (error.code === 'auth/user-not-found')      pesan = '❌ Email tidak terdaftar.';
+      if (error.code === 'auth/wrong-password')      pesan = '❌ Password salah.';
+      if (error.code === 'auth/invalid-email')       pesan = '❌ Format email tidak valid.';
+      if (error.code === 'auth/invalid-credential')  pesan = '❌ Email atau password salah.';
+      if (error.code === 'auth/too-many-requests')   pesan = '❌ Terlalu banyak percobaan. Coba lagi nanti.';
+      err.textContent = pesan;
+      loading.textContent = '';
+      btn.disabled = false;
+    }
+  };
+
+  // ========== LOGOUT ==========
+  window.logout = async function() {
+    if (confirm('Yakin mau logout?')) {
+      await signOut(auth);
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
+      document.getElementById('errorMsg').textContent = '';
+      document.getElementById('loadingMsg').textContent = '';
+      document.getElementById('btnLogin').disabled = false;
+    }
+  };
+
+  // ========== CEK STATUS LOGIN OTOMATIS ==========
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('dashboard').classList.add('active');
+      document.getElementById('emailAdmin').textContent = user.email;
+      document.getElementById('avatarAdmin').textContent = user.email.charAt(0).toUpperCase();
+      render();
+    } else {
+      document.getElementById('dashboard').classList.remove('active');
+      document.getElementById('loginPage').style.display = 'block';
+    }
+  });
+
+  // ========== SIMPAN KE LOCALSTORAGE ==========
+  function simpan() {
+    localStorage.setItem('dataAbsen', JSON.stringify(dataAbsen));
+  }
+
+  // ========== TAMBAH / EDIT ABSEN ==========
+  window.tambahAbsen = function() {
+    const nama = document.getElementById('nama').value.trim();
+    const kelas = document.getElementById('kelas').value.trim() || '-';
+    const status = document.getElementById('status').value;
+
+    if (!nama) { alert('Nama tidak boleh kosong!'); return; }
+
+    if (editIndex === -1) {
+      const waktu = new Date().toLocaleString('id-ID', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      dataAbsen.push({ nama, kelas, status, waktu });
+    } else {
+      dataAbsen[editIndex].nama = nama;
+      dataAbsen[editIndex].kelas = kelas;
+      dataAbsen[editIndex].status = status;
+      editIndex = -1;
+      document.getElementById('btnSubmit').textContent = '+ Tambah';
+    }
+
+    simpan();
+    render();
+    document.getElementById('nama').value = '';
+    document.getElementById('kelas').value = '';
+    document.getElementById('nama').focus();
+  };
+
+  window.editItem = function(index) {
+    const item = dataAbsen[index];
+    document.getElementById('nama').value = item.nama;
+    document.getElementById('kelas').value = item.kelas;
+    document.getElementById('status').value = item.status;
+    editIndex = index;
+    document.getElementById('btnSubmit').textContent = '💾 Simpan';
+    document.getElementById('nama').focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.hapusItem = function(index) {
+    if (confirm('Hapus data ini?')) {
+      dataAbsen.splice(index, 1);
+      simpan();
+      render();
+    }
+  };
+
+  window.hapusSemua = function() {
+    if (dataAbsen.length === 0) return;
+    if (confirm('Yakin hapus SEMUA data absen?')) {
+      dataAbsen = [];
+      simpan();
+      render();
+    }
+  };
+
+  // ========== RENDER TABEL ==========
+  function warnaStatus(status) {
+    return { Hadir: 'hadir', Izin: 'izin', Sakit: 'sakit', Alpha: 'alpha' }[status];
+  }
+
+  function render() {
+    const keyword = document.getElementById('search').value.toLowerCase();
+    const filtered = dataAbsen.filter(d =>
+      d.nama.toLowerCase().includes(keyword) ||
+      d.kelas.toLowerCase().includes(keyword)
+    );
+
+    const tbody = document.getElementById('tabelAbsen');
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty">${dataAbsen.length === 0 ? 'Belum ada data absen' : 'Tidak ditemukan hasil'}</td></tr>`;
+    } else {
+      tbody.innerHTML = filtered.map((item) => {
+        const i = dataAbsen.indexOf(item);
+        return `<tr>
+          <td>${i + 1}</td>
+          <td><b>${item.nama}</b></td>
+          <td>${item.kelas}</td>
+          <td><span class="badge ${warnaStatus(item.status)}">${item.status}</span></td>
+          <td>${item.waktu}</td>
+          <td>
+            <button class="btn-edit" onclick="editItem(${i})">Edit</button>
+            <button class="btn-hapus" onclick="hapusItem(${i})">Hapus</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    const hitung = { Hadir: 0, Izin: 0, Sakit: 0, Alpha: 0 };
+    dataAbsen.forEach(d => hitung[d.status]++);
+    document.getElementById('stats').innerHTML = `
+      <div class="stat-box total"><b>${dataAbsen.length}</b><span>Total</span></div>
+      <div class="stat-box hadir"><b>${hitung.Hadir}</b><span>Hadir</span></div>
+      <div class="stat-box izin"><b>${hitung.Izin}</b><span>Izin</span></div>
+      <div class="stat-box sakit"><b>${hitung.Sakit}</b><span>Sakit</span></div>
+      <div class="stat-box alpha"><b>${hitung.Alpha}</b><span>Alpha</span></div>
+    `;
+  }
+
+  // ========== EXPORT CSV ==========
+  window.exportCSV = function() {
+    if (dataAbsen.length === 0) { alert('Belum ada data untuk di-export'); return; }
+    let csv = 'No,Nama,Kelas/Jabatan,Status,Waktu\n';
+    dataAbsen.forEach((d, i) => {
+      csv += `${i+1},"${d.nama}","${d.kelas}","${d.status}","${d.waktu}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `absensi_${Date.now()}.csv`;
+    link.click();
+  };
+
+  // Enter untuk login
+  document.getElementById('password').addEventListener('keypress', e => {
+    if (e.key === 'Enter') window.login();
+  });
+</script>
+</body>
+</html>
